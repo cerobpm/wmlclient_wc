@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <meta charset="utf-8">
+    <title>WML client</title>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js">
+      </script>
+<!--
+      <script src = "https://code.highcharts.com/highcharts.js"></script>
+      <script src = "https://code.highcharts.com/modules/data.js"></script>
+      <script src="http://code.highcharts.com/modules/exporting.js"></script>
+	  <script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+	  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">  
+	  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+	  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.2/js/dataTables.buttons.min.js"></script>
+	  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.flash.min.js"></script>
+	  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.print.min.js"></script>
+	  <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+	  <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+	  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.2/js/buttons.html5.min.js"></script>
+-->
+
+	</head>
+	<body>
+		<div>
+			<h1>WaterML Client</h1>
+			<p>
+				<a href=../wmlclient>Volver al inicio</a>
+			</p>
+		</div>
+		<div>
+			<p><b>CUAHSI waterML web service URL:</b>&ensp;<a href={{{cuahsiendpoint}}}</p>
+			<form id=getgeojson method=POST action="wml/getSites">
+				<input hidden name=format value=geojson />
+		<!--
+				<input hidden name=IncludeSeries value=true />
+		-->
+				<label for="north">north</label>
+				<input type=text title="latitude of north bound" name=north value=-30 /><br>
+				<label for="south">south</label>
+				<input type=text title="latitude of south bound" name=south value=-35 /><br>
+				<label for="east">east</label>
+				<input type=text title="longitude of east bound" name=east value=-52 /><br>
+				<label for="west">west</label>
+				<input type=text title="longitude of west bound" name=west value=-59 /><br>
+				<input type=submit />
+			</form>
+		</div>
+		<div id=sites hidden>
+			<p><b>Sites  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadSites()'>GeoJSON</a> <a href="javascript:void(0);" onclick='downloadSites("csv")'>CSV</a></p>
+			<table id=results class=results>
+			  <tr>
+				<th>siteName</th>
+				<th>siteCode</th>
+				<th>network</th>
+				<th>longitude</th>
+				<th>latitude</th>
+			  </tr>
+			</table>
+		</div>
+		<div id=siteinfo hidden>
+			<p><b>Series  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadSeries()'>JSON</a> <a href="javascript:void(0);" onclick='downloadSeries("csv")'>CSV</a></p>
+			<table id=siteinfo class=results>
+				<tr>
+					<th>siteName</th>
+					<th>siteCode</th>
+					<th>network</th>
+					<th>longitude</th>
+					<th>latitude</th>
+					<th>variableCode</th>
+					<th>variableName</th>
+					<th>valueType</th>
+					<th>dataType</th>
+					<th>generalCategory</th>
+					<th>sampleMedium</th>
+					<th>unitName</th>
+					<th>unitType</th>
+					<th>unitAbbreviation</th>
+					<th>unitCode</th>
+					<th>noDataValue</th>
+					<th>timeScaleIsRegular</th>
+					<th>timeScaleUnitName</th>
+					<th>timeScaleUnitType</th>
+					<th>timeScaleUnitAbbreviation</th>
+					<th>timeScaleUnitCode</th>
+					<th>timeScaleTimeSupport</th>
+					<th>speciation</th>
+					<th>valueCount</th>
+					<th>beginDateTimeUTC</th>
+					<th>endDateTimeUTC</th>
+					<th>methodId</th>
+					<th>methodCode</th>
+					<th>methodDescription</th>
+					<th>methodLink</th>
+					<th>sourceID</th>
+					<th>organization</th>
+					<th>citation</th>
+					<th>qualityControlLevelID</th>
+					<th>qualityControlLevelCode</th>
+					<th>qualityControlLevelDefinition</th>
+				</tr>
+			</table>
+		</div>
+		<div id=choosedates hidden>
+			<h4>Fechas:</h4>
+			<form id=getvalues action="">
+				<input hidden name=siteCode id=sitecode />
+				<input hidden name=variableCode id=variablecode />
+				<label for="startDate">startDate</label>
+				<input type=datetime-local name=startDate id=startdate title="fecha y hora inicial" />
+				<label for="endDate">endDate</label>
+				<input type=datetime-local name=endDate id=enddate title="fecha y hora final" />
+				<input type=submit />
+			</form>
+		</div>
+		<div id=values hidden>
+			<p><b>Values  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadValues()'>JSON</a> <a href="javascript:void(0);" onclick='downloadValues("csv")'>CSV</a></p>
+			<table id=values class=results>
+				<th>censorCode</th>
+				<th>dateTime</th>
+				<th>qualityControlLevel</th>
+				<th>methodID</th>
+				<th>sourceID</th>
+				<th>sampleID</th>
+				<th>value</th>
+			</table> 
+		</div>
+		<script type="text/javascript">
+			var sites = {}
+			var siteinfo = {}
+			var values = {}
+			$("form#getgeojson").submit(getGeoJSON)
+			$("form#getvalues").submit(getValues)
+			function getGeoJSON(e) {
+				var formdata = {};
+				$(e.target).serializeArray().map(function(x){formdata[x.name] = x.value;});  // $("form#getheatmap")
+				console.log(formdata)
+				e.preventDefault()
+				formdata.bounds = formdata.north + "," + formdata.south + "," + formdata.east + "," + formdata.west
+				delete formdata.north
+				delete formdata.south
+				delete formdata.east
+				delete formdata.west
+				document.body.style.cursor = "progress";
+				$("tr#results").remove()
+				$.post("getSites", formdata, (data,status) => {
+					if(status !== 'success') {
+						alert("getGeoJSON error! Status:" + status)
+						document.body.style.cursor = "default";
+						return
+					}
+					if(!data.features) {
+						console.log("No features found")
+						alert("No se encontraron estaciones")
+						document.body.style.cursor = "default";
+						return
+					}
+					if(data.features.length <= 0) {
+						console.log("No features found: length<=0")
+						alert("No se encontraron estaciones")
+						document.body.style.cursor = "default";
+						return
+					}
+					sites = data
+					for(var i=0;i<data.features.length;i++) {
+						$("table#results").append(
+							$("<tr class=results onclick=getsiteinfo('" + data.features[i].properties.siteCode + "') title=\"click to getSiteInfo\"></tr>").append(
+								$("<td></td>").html(data.features[i].properties.siteName),
+								$("<td>" + data.features[i].properties.siteCode + "</td>"),
+								$("<td>" + data.features[i].properties.network + "</td>"),
+								$("<td>" + data.features[i].properties.longitude + "</td>"),
+								$("<td>" + data.features[i].properties.latitude + "</td>")
+							)
+						)
+					}
+					$("div#sites").show()
+					$("div#choosedates").hide()
+					$("div#values").hide()
+					document.getElementById('sites').scrollIntoView()
+					document.body.style.cursor = "default";
+
+				})
+				.fail(function() {
+					alert( "getSites error" );
+					document.body.style.cursor = "default";
+				})
+			}
+			function site2string(site) {
+				return site.properties.siteName + "," + site.properties.siteCode + "," + site.properties.network + "," + site.properties.longitude + "," + site.properties.latitude
+			}
+			//~ $("a#downloadSites").onclick(downloadSites())
+			//~ $("a#downloadSitesCSV").onclick(downloadSites("csv"))
+			function downloadSites(format="json") {
+				var a = document.createElement("a");
+				document.body.appendChild(a);
+				a.style = "display: none";
+				var strdata = ""
+				var fileName
+				if(format == "csv") {
+					strdata = "siteName,siteCode,network,longitude,latitude\n"
+					fileName = "sites.csv"
+					for(var i=0;i<sites.features.length;i++) {
+						strdata+=site2string(sites.features[i]) + "\n"
+						fileName = "sites.geojson"
+					}
+				} else {
+					strdata = JSON.stringify(sites,null,4)
+				}
+				var blob = new Blob([strdata], {type: "octet/stream"}),
+					url = window.URL.createObjectURL(blob);
+				a.href = url;
+				a.download = fileName;
+				a.click();
+				window.URL.revokeObjectURL(url);
+			}
+
+			function getsiteinfo (siteCode) {
+				document.body.style.cursor = "progress";
+				$.post("getSiteInfo",{site:siteCode}, (data,status)=> {
+					if(status !== 'success') {
+						alert("getsiteinfo error! Status:" + status)
+						document.body.style.cursor = "default";
+						return
+					}
+					if(!Array.isArray(data)) {
+						console.log("No features found")
+						alert("No se encontraron series")
+						document.body.style.cursor = "default";
+						return
+					}
+					if(data.length <= 0) {
+						console.log("No features found: length<=0")
+						alert("No se encontraron series")
+						document.body.style.cursor = "default";
+						return
+					}
+					siteinfo = data
+					$("div#siteinfo table#siteinfo tbody tr.results").remove()
+					for(var i = 0;i<data.length;i++) {
+						$("div#siteinfo table#siteinfo").append(
+							$("<tr class=results onclick=querydates('" + data[i].site.siteCode + "','" + data[i].variable.variableCode + "','" + data[i].beginDateTimeUTC + "','" + data[i].endDateTimeUTC + "') title=\"click to getSiteInfo\"></tr>").append(
+								$("<td></td>").html(data[i].site.siteName),
+								$("<td></td>").html(data[i].site.siteCode),
+								$("<td></td>").html(data[i].site.network),
+								$("<td></td>").html(data[i].site.longitude),
+								$("<td></td>").html(data[i].site.latitude),
+								$("<td></td>").html(data[i].variable.variableCode),
+								$("<td></td>").html(data[i].variable.variableName),
+								$("<td></td>").html(data[i].variable.valueType),
+								$("<td></td>").html(data[i].variable.dataType),
+								$("<td></td>").html(data[i].variable.generalCategory),
+								$("<td></td>").html(data[i].variable.sampleMedium),
+								$("<td></td>").html(data[i].variable.unit.unitName),
+								$("<td></td>").html(data[i].variable.unit.unitType),
+								$("<td></td>").html(data[i].variable.unit.unitAbbreviation),
+								$("<td></td>").html(data[i].variable.unit.unitCode),
+								$("<td></td>").html(data[i].variable.noDataValue),
+								$("<td></td>").html(data[i].variable.timeScale.IsRegular),
+								$("<td></td>").html(data[i].variable.timeScale.unit.unitName),
+								$("<td></td>").html(data[i].variable.timeScale.unit.unitType),
+								$("<td></td>").html(data[i].variable.timeScale.unit.unitAbbreviation),
+								$("<td></td>").html(data[i].variable.timeScale.unitCode),
+								$("<td></td>").html(data[i].variable.timeScale.timeSupport),
+								$("<td></td>").html(data[i].variable.speciation),
+								$("<td></td>").html(data[i].valueCount),
+								$("<td></td>").html(data[i].beginDateTimeUTC),
+								$("<td></td>").html(data[i].endDateTimeUTC),
+								$("<td></td>").html(data[i].method.methodId),
+								$("<td></td>").html(data[i].method.methodCode),
+								$("<td></td>").html(data[i].method.methodDescription),
+								$("<td></td>").html(data[i].method.methodLink),
+								$("<td></td>").html(data[i].source.sourceID),
+								$("<td></td>").html(data[i].source.organization),
+								$("<td></td>").html(data[i].source.citation),
+								$("<td></td>").html(data[i].qualityControlLevel.qualityControlLevelID),
+								$("<td></td>").html(data[i].qualityControlLevel.qualityControlLevelCode),
+								$("<td></td>").html(data[i].qualityControlLevel.qualityControlLevelDefinition)
+							)
+						)
+					}
+					$("div#siteinfo").show()
+					document.getElementById('siteinfo').scrollIntoView();
+					$("div#choosedates").hide()
+					$("div#values").hide()
+					document.body.style.cursor = "default";
+				})
+				.fail(function() {
+					alert( "getSiteInfo error" );
+					document.body.style.cursor = "default";
+				})
+			}
+			function downloadSeries(format = "json") {
+				var a = document.createElement("a");
+				document.body.appendChild(a);
+				a.style = "display: none";
+				var strdata = ""
+				var fileName
+				if(format == "csv") {
+					strdata = "siteName,siteCode,network,longitude,latitude,variableCode,variableName,valueType,dataType,generalCategory,sampleMedium,unitName,unitType,unitAbbreviation,unitCode,noDataValue,timeScaleIsRegular,timeScaleUnitName,timeScaleUnitType,timeScaleUnitAbbreviation,timeScaleUnitCode,timeScaleTimeSupport,speciation,valueCount,beginDateTimeUTC,endDateTimeUTC,methodId,methodCode,methodDescription,methodLink,sourceID,organization,citation,qualityControlLevelID,qualityControlLevelCode,qualityControlLevelDefinition\n"
+					fileName = "siteinfo.csv"
+					for(var i=0; i<siteinfo.length;i++) {
+						strdata += series2string(siteinfo[i]) + "\n"
+					}
+				} else {
+					strdata = JSON.stringify(siteinfo,null,4)
+					fileName = "siteinfo.json"
+				}
+				var blob = new Blob([strdata], {type: "octet/stream"}),
+					url = window.URL.createObjectURL(blob);
+				a.href = url;
+				a.download = fileName;
+				a.click();
+				window.URL.revokeObjectURL(url);
+			}
+			function series2string(series) {
+				return series.site.siteName + "," + series.site.siteCode + "," + series.site.network + "," + series.site.longitude + "," + series.site.latitude + "," + series.variable.variableCode + "," + series.variable.variableName + "," + series.variable.valueType + "," + series.variable.dataType + "," + series.variable.generalCategory + "," + series.variable.sampleMedium + "," + series.variable.unit.unitName + "," + series.variable.unit.unitType + "," + series.variable.unit.unitAbbreviation + "," + series.variable.unit.unitCode + "," + series.variable.noDataValue + "," + series.variable.timeScale.IsRegular + "," + series.variable.timeScale.unit.unitName + "," + series.variable.timeScale.unit.unitType + "," + series.variable.timeScale.unit.unitAbbreviation + "," + series.variable.timeScale.unitCode + "," + series.variable.timeScale.timeSupport + "," + series.variable.speciation + "," + series.valueCount + "," + series.beginDateTimeUTC + "," + series.endDateTimeUTC + "," + series.method.methodId + "," + series.method.methodCode + "," + series.method.methodDescription + "," + series.method.methodLink + "," + series.source.sourceID + "," + series.source.organization + "," + series.source.citation + "," + series.qualityControlLevel.qualityControlLevelID + "," + series.qualityControlLevel.qualityControlLevelCode + "," + series.qualityControlLevel.qualityControlLevelDefinition
+			}
+								
+			function querydates (siteCode,variableCode,startDate,endDate) {
+				$("div#choosedates form input#sitecode").val(siteCode)
+				$("div#choosedates form input#variablecode").val(variableCode)
+				$("div#choosedates form input#startdate").val(startDate.replace(/Z$/,""))
+				$("div#choosedates form input#enddate").val(endDate.replace(/Z$/,""))
+				$("div#choosedates").show()
+				window.location.hash = '#choosedates';
+				document.body.style.cursor = "default";
+			}
+			function getValues (e) {
+				document.body.style.cursor = "progress";
+				var formdata = {}
+				$(e.target).serializeArray().map(function(x){formdata[x.name] = x.value;});  // $("form#getheatmap")
+				console.log(formdata)
+				e.preventDefault()
+				$.post("getValues",{site:formdata.siteCode,variable:formdata.variableCode,startdate:formdata.startDate,enddate:formdata.endDate}, (data,status)=> {
+					if(status !== 'success') {
+						alert("getValues error! Status:" + status)
+						document.body.style.cursor = "default";
+						return
+					}
+					if(!data.values) {
+						console.log("No values found")
+						alert("No se encontraron valores")
+						document.body.style.cursor = "default";
+						return
+					}
+					if(!Array.isArray(data.values)) {
+						console.log("No features found")
+						alert("No se encontraron valores")
+						document.body.style.cursor = "default";
+						return
+					}
+					if(data.values.length <= 0) {
+						console.log("No features found: length<=0")
+						alert("No se encontraron valores")
+						document.body.style.cursor = "default";
+						return
+					}
+					values = data
+					$("div#values table#values tbody tr.results").remove()
+					for(var i = 0;i<data.values.length;i++) {
+						$("div#values table#values").append(
+							$("<tr class=results></tr>").append(
+								$("<td></td>").html(data.values[i].censorCode),
+								$("<td></td>").html(data.values[i].dateTime),
+								$("<td></td>").html(data.values[i].qualityControlLevel),
+								$("<td></td>").html(data.values[i].methodID),
+								$("<td></td>").html(data.values[i].sourceID),
+								$("<td></td>").html(data.values[i].sampleID),
+								$("<td></td>").html(data.values[i].value)
+							)
+						)
+					}
+					$("div#values").show()
+					document.getElementById('values').scrollIntoView();
+					document.body.style.cursor = "default";
+				})
+				.fail(function() {
+					alert( "getValues error" );
+					document.body.style.cursor = "default";
+				})
+			}	
+			function downloadValues(format = "json") {
+				var a = document.createElement("a");
+				document.body.appendChild(a);
+				a.style = "display: none";
+				var strdata = ""
+				var fileName
+				if(format == "csv") {
+					strdata = "censorCode,dateTime,qualityControlLevel,methodID,sourceID,sampleID,value\n"
+					fileName = "values.csv"
+					for(var i=0; i<values.values.length;i++) {
+						strdata += value2string(values.values[i]) + "\n"
+					}
+				} else {
+					strdata = JSON.stringify(values,null,4)
+					fileName = "values.json"
+				}
+				var blob = new Blob([strdata], {type: "octet/stream"}),
+					url = window.URL.createObjectURL(blob);
+				a.href = url;
+				a.download = fileName;
+				a.click();
+				window.URL.revokeObjectURL(url);
+			}
+			function value2string(value) {
+				return value.censorCode + "," + value.dateTime + "," + value.qualityControlLevel + "," + value.methodID + "," + value.sourceID + "," + value.sampleID + "," + value.value
+			}
+
+		</script>
+	</body>
+</html>

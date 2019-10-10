@@ -1,0 +1,8 @@
+{
+ "wml_endpoint":"http://gs-service-production.geodab.eu/gs-service/services/essi/view/plata/cuahsi_1_1.asmx?WSDL",
+ "request_defaults":
+  {"proxy":"http://jbianchi:jbianchi@10.10.10.119:3128",
+   "timeout": 20000,
+   "connection": "keep-alive"
+  }
+}
