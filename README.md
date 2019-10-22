@@ -10,14 +10,18 @@ geoJSON o CSV
 ## Instalación
 
 **instalar nodejs y npm:**
+
     en Linux:  `sudo apt install nodejs npm`
+    
 crear una carpeta y descargar wmlclient_wc allí
+
 **instalar las dependencias:**
+
     en Linux: `npm install`   // (instala todos los paquetes listados en package.json)
 
 ## Configuración
 
-edite el archivo config/default.json para especificar URL de acceso al web service y configuración del proxy, si es necesario:
+edite el archivo config/default.json para especificar URL de acceso al web service, el puerto  y configuración del proxy, si es necesario:
 ```
 {
  "wml_endpoint":"http://gs-service-production.geodab.eu/gs-service/services/essi/view/plata/cuahsi_1_1.asmx?WSDL",
@@ -25,7 +29,8 @@ edite el archivo config/default.json para especificar URL de acceso al web servi
   {"proxy":"http://user:pass@ip:port",
    "timeout": 20000,
    "connection": "keep-alive"
-  }
+  },
+  "port": 3003
 }
 ```
 
