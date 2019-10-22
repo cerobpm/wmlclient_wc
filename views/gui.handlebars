@@ -2,7 +2,7 @@
 			<h1>WaterML Client</h1>
 			<p><b>Querying CUAHSI waterML web service at URL:</b>&ensp;<a href={{cuahsiendpoint}}>{{cuahsiendpoint}}</a></p>
 		</div>
-		<div class=general>
+		<div class=general id=mapdiv>
 			<p><b>GetSitesByBox</b></p>
 			<form id=getgeojson method=POST action="wml/getSites">
 				<input hidden name=format value=geojson />
@@ -28,19 +28,19 @@
 		</div>
 		
 		<div id=sites class=general hidden>
-			<p><b>Sites  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadSites()'>GeoJSON</a> <a href="javascript:void(0);" onclick='downloadSites("csv")'>CSV</a></p>
+			<p><b>Sites  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadSites()'>GeoJSON</a> <a href="javascript:void(0);" onclick='downloadSites("csv")'>CSV</a>&ensp;&ensp;&ensp;&ensp;&ensp; <a href="#mapdiv">Back to map</a></p>
 			<table id=sites class=results>
 
 			</table>
 		</div>
 		<div id=siteinfo class=general hidden>
-			<p><b>Series  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadSeries()'>JSON</a> <a href="javascript:void(0);" onclick='downloadSeries("csv")'>CSV</a></p>
+			<p><b>Series  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadSeries()'>JSON</a> <a href="javascript:void(0);" onclick='downloadSeries("csv")'>CSV</a>&ensp;&ensp;&ensp;&ensp;&ensp; <a href="#mapdiv">Back to map</a></p>
 			<table id=siteinfo class=results>
 		
 			</table>
 		</div>
 		<div id=choosedates class=general hidden>
-			<h4>Choose dates:</h4>
+			<p><b>Choose dates:</b>&ensp;&ensp;&ensp;&ensp;&ensp; <a href="#mapdiv">Back to map</a></p>
 			<form id=getvalues action="">
 				<table>
 					<tr><td><label for=siteCode>siteCode</label></td><td><input name=siteCode id=sitecode type=text /></td></tr>
@@ -52,7 +52,8 @@
 			</form>
 		</div>
 		<div id=values class=general hidden>
-			<p><b>Values  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadValues()'>JSON</a> <a href="javascript:void(0);" onclick='downloadValues("csv")'>CSV</a></p>
+			<p><b>Values  </b>&ensp;&ensp;&ensp;&ensp;&ensp; download: <a href="javascript:void(0);" onclick='return downloadValues()'>JSON</a> <a href="javascript:void(0);" onclick='downloadValues("csv")'>CSV</a>&ensp;&ensp;&ensp;&ensp;&ensp; <a href="#mapdiv">Back to map</a></p>
+			<div class=general id=chart></div>
 			<table id=values class=results>
 			</table> 
 		</div>
@@ -71,7 +72,7 @@
 			function getGeoJSON(e) {
 				var formdata = {};
 				$(e.target).serializeArray().map(function(x){formdata[x.name] = x.value;});  // $("form#getheatmap")
-				console.log(formdata)
+				//~ console.log(formdata)
 				e.preventDefault()
 				formdata.bounds = formdata.north + "," + formdata.south + "," + formdata.east + "," + formdata.west
 				delete formdata.north
@@ -121,6 +122,7 @@
 					$("div#sites").show()
 					$("div#choosedates").hide()
 					$("div#values").hide()
+					clearAll()
 					//~ document.getElementById('sites').scrollIntoView()
 					document.body.style.cursor = "default";
 					const format = new ol.format.GeoJSON();
@@ -282,6 +284,7 @@
 					document.getElementById('siteinfo').scrollIntoView();
 					$("div#choosedates").hide()
 					$("div#values").hide()
+					clearAll()
 					document.body.style.cursor = "default";
 				})
 				.fail(function() {
@@ -329,7 +332,7 @@
 				document.body.style.cursor = "progress";
 				var formdata = {}
 				$(e.target).serializeArray().map(function(x){formdata[x.name] = x.value;});  // $("form#getheatmap")
-				console.log(formdata)
+				//~ console.log(formdata)
 				e.preventDefault()
 				$("table#values").empty().append(
 					$("<tr></tr>").append(
@@ -384,6 +387,7 @@
 					$("div#values").show()
 					document.getElementById('values').scrollIntoView();
 					document.body.style.cursor = "default";
+					loadChart(data)
 				})
 				.fail(function() {
 					alert( "getValues error" );
@@ -521,7 +525,7 @@
 			var pointStyle = new ol.style.Style({
 			  image: new ol.style.Icon({
 				anchor: [0.5, 1],
-				src: '/img/map_pin_small.png',
+				src: '../img/map_pin_small.png',
 				//~ size: 60
 			  })
 			});
@@ -585,5 +589,132 @@
 				$("td#map").css({'cursor': ((hit) ? 'pointer' : '')})
 			});
 					
+			// chart //
+			function loadChart(data) {
+				Highcharts.setOptions ({
+				  lang: {
+						months: ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'],
+						shortMonths: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+					  },
+					  global: {
+						  timezone: 'Brasilia',
+						  useUTC: false
+					  },
+				}); 
+				
+				var chart = {
+					type: 'spline',
+					zoomType: 'x',
+					exporting: {
+						chartOptions: { // specific options for the exported image
+							plotOptions: {
+								series: {
+									dataLabels: {
+										enabled: true
+									}
+								}
+							}
+						},
+						fallbackToExportServer: false
+					},
+				}; 
+				var title = {
+				   text: 'Values'   
+				};
+				var subtitle = {
+				   text: 'CUAHSI/waterML client'
+				};
+				var xAxis = {
+					type: 'datetime',
+					title: {
+						text: 'Date'
+					},
+					dateTimeLabelFormats: {
+					  day: '%e %b %Y',
+					  month: '%e %b %Y',
+					  year: '%e %b %Y'
+					}, 
+					 minRange: 1 * 24 * 3600000, // 1 days
+					plotLines: [{
+						color: 'black',
+						dashStyle: 'dashdot',
+						value: Date.parse(new Date()),
+						width:1,
+						label: {
+							text: "now"
+						}
+					}] 
+				};
+				var yAxis = {
+				   title: {
+					  text: data.seriesInfo.variable.variableName
+				   },
+				   plotLines: [{
+					  value: 0,
+					  width: 1,
+					  color: '#808080'
+				   }]
+				};   
+
+				var tooltip = {
+				   headerFormat: '<b>{series.name}</b><br>',
+				   pointFormat: '{point.x:%e %b %H:%M}: {point.y:.2f}'
+				};
+				var plotOptions = {
+				   spline: {
+					  marker: {
+						 enabled: true
+					  }
+				  }
+				};
+				var legend = {
+				   layout: 'vertical',
+				   align: 'right',
+				   verticalAlign: 'middle',
+				   borderWidth: 0
+				};
+				var series =  [];
+
+				var json = {};
+				json.chart= chart;
+				json.plotOptions = plotOptions;
+				json.title = title;
+				json.subtitle = subtitle;
+				json.xAxis = xAxis;
+				json.yAxis = yAxis;
+				json.tooltip = tooltip;
+				json.legend = legend;
+				json.series = series;
+				////~ CARGA TABLA DATATABLE
+				//~ var datatable = $("#chart").DataTable();
+				//~ datatable.clear();
+				var seriesdata = data.values.map(it=> {
+					var date = Date.parse(it.dateTime)
+					console.log(date)
+					return [date, parseFloat(it.value)]
+				})
+				var seriesdataformat = data.values.map(it => {
+					return [it.dateTime.substring(0,19), parseFloat(it.value)]
+				})
+				//~ datatable.rows.add(seriesdataformat);
+				//~ datatable.draw();
+				json.series[0] = {
+					data: seriesdata,
+					name: data.seriesInfo.site.siteName + " - " + data.seriesInfo.variable.variableName
+				}
+				$('#chart').highcharts(json);
+			}
+			function clearAll() {
+				if($('#chart').highcharts()) {
+				  var chart = $('#chart').highcharts();
+				  for(var i = chart.series.length -1; i> -1; i--) {
+					  chart.series[i].remove();
+				  }
+				  chart.destroy(); //~ = new Highcharts.Chart();
+				}
+			}
+				
+				
+
 
 		</script>
