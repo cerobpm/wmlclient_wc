@@ -2,8 +2,10 @@
 ### Cuahsi waterML client for nodejs
 ## Resumen
 
-Librería para nodejs, interfaz de línea de comando, REST API e interfaz gráfica para acceso al web service CUAHSI/waterML de datos hidrológicos. 
-Inicialmente apuntado al servidor HIS-Plata de la OMM
+Librería para nodejs, interfaz de línea de comando, REST API e interfaz gráfica para acceso al web service CUAHSI/waterML de datos hidrológicos (WaterOneFlow web service para WaterML versión 1.1, ver documentación: http://his.cuahsi.org/wofws.html#wds). 
+
+Inicialmente apuntado al servidor WHOS-Cuenca del Plata de OMM (WMO), puede modificarse la URI en el archivo de configuración.
+
 Permite acceder al listado de estaciones, de series y de datos disponibles en el web service y descargarlos en formato JSON,
 geoJSON o CSV
 
