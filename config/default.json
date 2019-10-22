@@ -4,5 +4,6 @@
   {"proxy":"http://jbianchi:jbianchi@10.10.10.119:3128",
    "timeout": 20000,
    "connection": "keep-alive"
-  }
+  },
+  "port": 3003
 }
