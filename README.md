@@ -171,7 +171,7 @@ Devuelve un arreglo de objetos de la clase *Site*, la cual tiene las siguientes 
 wml.getSiteInfo(site)
 ```
 donde *site* es el código de sitio alfanumérico.
-Devuelve un arreglo de objetos de la clase Serie, la cual tiene las siguientes propiedades:
+Devuelve un arreglo de objetos de la clase *Serie*, la cual tiene las siguientes propiedades:
 ```
 {
    site: Site,
@@ -189,7 +189,7 @@ donde *Variable, Method, Source y QualityControlLevel* son clases auxiliares que
 ```
 wml.getValues(site,variable,startdate,enddate)
 ```
-donde *site* es el código de sitio alfanumérico, *variable* es el código de variable alfanumérico y startdate y enddate son las fechas inicial y final en formato ISO: YYYY-MM-DDTHH:MM:SS.
+donde *site* es el código de sitio alfanumérico, *variable* es el código de variable alfanumérico y *startdate* y *enddate* son las fechas inicial y final en formato ISO: YYYY-MM-DDTHH:MM:SS.
 Devuelve un arreglo de objetos de la clase *Value*, la cual tiene las siguientes propiedades:
 ```
 {
