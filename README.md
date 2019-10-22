@@ -17,7 +17,7 @@ crear una carpeta y descargar wmlclient_wc allí
 
 **instalar las dependencias:**
 
-en Linux: `npm install`   // (instala todos los paquetes listados en package.json)
+en Linux: `npm install`    (instala todos los paquetes listados en package.json)
 
 ## Configuración
 
@@ -147,6 +147,8 @@ Una vez obtenido el listado de sitios, el usuario puede navegar el mapa y selecc
 Luego el usuario debe seleccionar la serie deseada para desplegar el formulario de getValues, donde deberá completar las fechas inicial y final deseadas.
 Finalmente, se desplegará un gráfico de la variable obtenida en función del tiempo, y el listado de los datos.
 
+Se puede acceder a la instancia de prueba disponible en https://alerta.ina.gob.ar/wmlclient/wml/
+
 ### librería nodejs
 Para incorporar la librería a su código puede hacer:
 ```
@@ -163,12 +165,12 @@ donde *north,south,east,west* son las coordenadas geográficas decimales y *incl
 Devuelve un arreglo de objetos de la clase *Site*, la cual tiene las siguientes propiedades:
 ```
 {
-			siteName: string,
-			network: string,
-			siteCode: string,
-			longitude: numeric,
-			latitude: numeric,
-      series: [Serie, ...]
+	siteName: string,
+	network: string,
+	siteCode: string,
+	longitude: numeric,
+	latitude: numeric,
+        series: [Serie, ...]
 }
 ```
 ##### getSiteInfo
@@ -179,14 +181,14 @@ donde *site* es el código de sitio alfanumérico.
 Devuelve un arreglo de objetos de la clase *Serie*, la cual tiene las siguientes propiedades:
 ```
 {
-   site: Site,
+         site: Site,
 	 variable: Variable,
 	 valueCount: integer,
-   beginDateTimeUTC: ISO date string,
+         beginDateTimeUTC: ISO date string,
 	 endDateTimeUTC: ISO date string,
-   method: Method,
+         method: Method,
 	 source: Source,
-   qualityControlLevel: QualityControlLevel
+         qualityControlLevel: QualityControlLevel
 }
 ```
 donde *Variable, Method, Source y QualityControlLevel* son clases auxiliares que se definen en la librería
@@ -198,13 +200,13 @@ donde *site* es el código de sitio alfanumérico, *variable* es el código de v
 Devuelve un arreglo de objetos de la clase *Value*, la cual tiene las siguientes propiedades:
 ```
 {
-	  censorCode: string,
-		dateTime: ISO date string,
-		qualityControlLevel: integer,
-		methodID: integer,
-		sourceID: integer,
-		sampleID: integer,
-		value: numeric
+	censorCode: string,
+	dateTime: ISO date string,
+	qualityControlLevel: integer,
+	methodID: integer,
+	sourceID: integer,
+	sampleID: integer,
+	value: numeric
 }
 ```
 Además de las propiedades enumeradas, todas las clases tienen los métodos *toString()* y *toCSV()*. Adicionalmente, las clases *Site* y *Serie* tienen el método *toGeoJSON()* que produce un objeto GeoJSON válido según la definición de OGC
