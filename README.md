@@ -1,14 +1,13 @@
 # wmlclient_wc
-###Cuahsi waterML client for nodejs
-
-##Resumen
+### Cuahsi waterML client for nodejs
+## Resumen
 
 Librería para nodejs, interfaz de línea de comando, REST API e interfaz gráfica para acceso al web service CUAHSI/waterML de datos hidrológicos. 
 Inicialmente apuntado al servidor HIS-Plata de la OMM
 Permite acceder al listado de estaciones, de series y de datos disponibles en el web service y descargarlos en formato JSON,
 geoJSON o CSV
 
-##Instalación
+## Instalación
 
 **instalar nodejs y npm:**
     en Linux:  `sudo apt install nodejs npm`
@@ -16,7 +15,7 @@ crear una carpeta y descargar wmlclient_wc allí
 **instalar las dependencias:**
     en Linux: `npm install`   // (instala todos los paquetes listados en package.json)
 
-##Configuración
+## Configuración
 
 edite el archivo config/default.json para especificar URL de acceso al web service y configuración del proxy, si es necesario:
 ```
@@ -30,10 +29,10 @@ edite el archivo config/default.json para especificar URL de acceso al web servi
 }
 ```
 
-##Uso
+## Uso
 
-###Interfaz de línea de comando
-#####Ver la ayuda
+### Interfaz de línea de comando
+##### Ver la ayuda
 ```
 ~/wmlclient_wc$ nodejs index.js --help
 Usage: index [options] [command]
@@ -49,7 +48,7 @@ Commands:
   getSiteInfo|i [options]  Get siteinfo from CUAHSI-WML server
   getValues|v [options]    Get values from CUAHSI-WML server
 ```
-#####getSites
+##### getSites
 Devuelve listado de sitios contenidos en la caja de coordenadas provista, u opcionalmente el listado de series correspondiente a
 dichos sitios
 ```
@@ -65,7 +64,7 @@ Options:
   -s, --includeSeries   includeSeries
   -h, --help            output usage information
 ```
-#####getSiteInfo
+##### getSiteInfo
 devuelve listado de series correspondientes al siteCode provisto
 ```
 ~/wmlclient_wc$ nodejs index.js getSiteInfo --help
@@ -79,7 +78,7 @@ Options:
   -f, --file <value>  output to file
   -h, --help          output usage information
 ```
-#####getValues
+##### getValues
 Devuelve listado de datos (pares fecha-valor) correspondientes al siteCode y variableCode provistos, entre las fechas provistas
 ```
 ~/wmlclient_wc$ nodejs index.js getValues --help
@@ -97,14 +96,14 @@ Options:
   -h, --help               output usage information
 ```
 
-###REST API
+### REST API
 Arrancar el servidor:
 ```
 ~/wmlclient_wc$ nodejs rest.js 
 server listening on port 3003
 ```
 URI de las peticiones disponibles mediante POST:
-#####https://localhost:3003/wml/getSites
+##### https://localhost:3003/wml/getSites
 Cuerpo de la petición: 
 ```
 {
@@ -113,7 +112,7 @@ Cuerpo de la petición:
     "format":"csv|geojson|geojson_pretty|json"  // default json
 }
 ```
-#####https://localhost:3003/wml/getSiteInfo
+##### https://localhost:3003/wml/getSiteInfo
 Cuerpo de la petición: 
 ```
 {
@@ -121,7 +120,7 @@ Cuerpo de la petición:
     "format":"csv|geojson|geojson_pretty|json"   //  default json
 }
 ```
-#####https://localhost:3003/wml/getValues
+##### https://localhost:3003/wml/getValues
 Cuerpo de la petición: 
 ```
 {
@@ -137,7 +136,7 @@ curl -d '{"bounds":"-26,-28,-55,-58","includeSeries":false,"format":"geojson_pre
 ```
 ### Interfaz gráfica de usuario (GUI)
 Funciona sobre el mismo servidor, en la ubicación:
-#####https://localhost:3003/wml/
+##### https://localhost:3003/wml/
 Allí en primer lugar se visualiza un formulario para ingresar la caja de coordenadas para getSites. Opcionalmente se puede utilizar la herramienta de dibujo en el mapa para trazar un polígono, el cual una vez cerrado cargará sus coordenadas envolventes a los campos del formulario.
 Una vez obtenido el listado de sitios, el usuario puede navegar el mapa y seleccionar la estación deseada, o realizarlo sobre el listado, para acceder a getSiteInfo y obtener el listado de series disponibles (variables observadas en dicho sitio).
 Luego el usuario debe seleccionar la serie deseada para desplegar el formulario de getValues, donde deberá completar las fechas inicial y final deseadas.
@@ -151,7 +150,7 @@ const wml = new wmlclient.client(config.wml_endpoint, config.soap_client_options
 ```
 donde *wml_endpoint* y *soap_client_options* pueden especificarse en *config/default.json*
 Luego, para ejecutar las solicitudes al web service, puede hacer:
-#####getSites
+##### getSites
 ```
 wml.getSites(north,south,east,west,includeSeries)
 ```
@@ -167,7 +166,7 @@ Devuelve un arreglo de objetos de la clase *Site*, la cual tiene las siguientes 
       series: [Serie, ...]
 }
 ```
-#####getSiteInfo
+##### getSiteInfo
 ```
 wml.getSiteInfo(site)
 ```
@@ -186,12 +185,13 @@ Devuelve un arreglo de objetos de la clase Serie, la cual tiene las siguientes p
 }
 ```
 donde *Variable, Method, Source y QualityControlLevel* son clases auxiliares que se definen en la librería
-#####getValues
+##### getValues
 ```
 wml.getValues(site,variable,startdate,enddate)
 ```
 donde *site* es el código de sitio alfanumérico, *variable* es el código de variable alfanumérico y startdate y enddate son las fechas inicial y final en formato ISO: YYYY-MM-DDTHH:MM:SS.
 Devuelve un arreglo de objetos de la clase *Value*, la cual tiene las siguientes propiedades:
+```
 {
 	  censorCode: string,
 		dateTime: ISO date string,
