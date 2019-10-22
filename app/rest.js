@@ -16,7 +16,7 @@ app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
   extended: true
 })); 
-const port = 3003
+const port = config.port
 
 let soap_client_options = { 'request' : request.defaults(config.request_defaults)}
 const wmlclient = require('./wmlclient')
