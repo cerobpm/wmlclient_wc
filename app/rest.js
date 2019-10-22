@@ -41,30 +41,39 @@ function getSites(req,res) {
 		res.status(400).send("bounds incorrecto")
 		return
 	}
-	wml.getSites(b[0],b[1],b[2],b[3])
+	wml.getSites(b[0],b[1],b[2],b[3],req.body.includeSeries)
 	.then(sites=> {
 		
-		// yes IncludeSeries 
-		if(req.body.IncludeSeries) {
-			var promises = []
+		// yes includeSeries 
+		if(req.body.includeSeries) {
+			var series = []
 			sites.forEach( site => {
-				promises.push(wml.getSiteInfo(site.siteCode))
-			})
-			Promise.all(promises)
-			.then(list=> {
-				var siteinfo = []
-				list.forEach(serieslist=> {
-					for(var i=0;i<serieslist.length;i++) {
-						siteinfo.push(serieslist[i])
-					}
+				site.series.forEach(it=>{
+					series.push(it)
 				})
-				sendresult(res,siteinfo,req.body.format)
-				return
 			})
-			.catch(e => {
-				res.status(400).send(e)
-				console.error(e)
-			})
+			sendresult(res,series,req.body.format)
+				
+			// comentado: loop de llamada a getsiteinfo para cuando está implementada la opción includeSeries en el servidor
+			//~ var promises = []
+			//~ sites.forEach( site => {
+				//~ promises.push(wml.getSiteInfo(site.siteCode))
+			//~ })
+			//~ Promise.all(promises)
+			//~ .then(list=> {
+				//~ var siteinfo = []
+				//~ list.forEach(serieslist=> {
+					//~ for(var i=0;i<serieslist.length;i++) {
+						//~ siteinfo.push(serieslist[i])
+					//~ }
+				//~ })
+				//~ sendresult(res,siteinfo,req.body.format)
+				//~ return
+			//~ })
+			//~ .catch(e => {
+				//~ res.status(400).send(e)
+				//~ console.error(e)
+			//~ })
 		} else { // no IncludeSeries
 			sendresult(res,sites,req.body.format)
 			return

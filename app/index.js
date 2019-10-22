@@ -22,13 +22,15 @@ program
   .option('-b, --bounds <value>', 'north,south,east,west')
   .option('-c, --csv', 'output as CSV')
   .option('-f, --file <value>', 'output to file')
+  .option('-s, --includeSeries', 'includeSeries')
   .action(options => {
 	if(!options.bounds) {
 		console.log("Falta bounds")
 		return
 	}
 	var b = options.bounds.toString().split(",")
-	wml.getSites(b[0],b[1],b[2],b[3])
+	//~ var includeSeries = (options.includeSeries) ? true : false
+	wml.getSites(b[0],b[1],b[2],b[3],options.includeSeries)
 	.then(sites=> {
 		var str=""
 		sites.forEach(site=> {

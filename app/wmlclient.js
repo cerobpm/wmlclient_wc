@@ -54,12 +54,15 @@ internal.Site = class {
 		this.siteCode = siteCode
 		this.longitude = longitude
 		this.latitude = latitude
+		this.series = []
 	}
 	toString() {
-		return "siteName:" + this.siteName + " ,network:" + this.network + ", siteCode:" + this.siteCode + ", longitude:" + this.longitude + ", latitude:" + this.latitude
+		var seriesString = (this.series.length > 0) ? this.series.map(item=> item.toString()).join(", ") : ""
+		return "siteName:" + this.siteName + " ,network:" + this.network + ", siteCode:" + this.siteCode + ", longitude:" + this.longitude + ", latitude:" + this.latitude + ", series: [" + seriesString + "]"
 	}
 	toCSV() {
-		return this.siteName + "," + this.network + "," + this.siteCode + "," + this.longitude + "," + this.latitude
+		var seriesString = (this.series.length > 0) ? this.series.map(item=> item.toCSV()).join(",") : ""
+		return this.siteName + "," + this.network + "," + this.siteCode + "," + this.longitude + "," + this.latitude + "," + seriesString
 	}
 	toGeoJSON() {
 		return {
@@ -269,7 +272,7 @@ internal.client = class {
 		this.endpoint = endpoint
 		this.soap_client_options = options
 	}
-	getSites(north,south,east,west) {
+	getSites(north,south,east,west,includeSeries=false) {
 		return new Promise ( (resolve, reject) => {
 			if(north && south && east && west) {
 				soap.createClient(this.endpoint, this.soap_client_options, function(err, client) {
@@ -278,19 +281,29 @@ internal.client = class {
 						//~ console.error(err)
 						return
 					}
-					client.GetSitesByBoxObject({north: north, south: south, east: east, west: west, IncludeSeries: "True"}, function(err, result, rawResponse) {
+					client.GetSitesByBoxObject({north: north, south: south, east: east, west: west, IncludeSeries: includeSeries}, function(err, result, rawResponse) {
 					  if(err) {
 						  reject({message:"waterML server error",error:err})
 						  //~ console.error(err)
 						  return 
 					  }
 					  //~ console.log(client.lastRequest)
-					  //~ console.log(rawResponse)
+					  //~ console.log(rawResponse)	
 					  var siteslist = []
 					  if(result.sitesResponse.hasOwnProperty("site")) {
 						  result.sitesResponse.site.forEach(function(site) {
-							  siteslist.push(new internal.Site(site.siteInfo.siteName,site.siteInfo.siteCode[0].attributes.network,site.siteInfo.siteCode[0]["$value"],site.siteInfo.geoLocation.geogLocation.longitude,site.siteInfo.geoLocation.geogLocation.latitude))
-							  console.log(site)
+							  //~ console.log(JSON.stringify(site.seriesCatalog,null,2))
+							  const siteObj = new internal.Site(site.siteInfo.siteName,site.siteInfo.siteCode[0].attributes.network,site.siteInfo.siteCode[0]["$value"],site.siteInfo.geoLocation.geogLocation.longitude,site.siteInfo.geoLocation.geogLocation.latitude)
+							  if(includeSeries) { 
+								  site.seriesCatalog.forEach(catalog=>{
+									  catalog.series.forEach(item=>{
+										  //~ console.log(JSON.stringify(serie,null,2))
+										  siteObj.series.push(internal.makeSeries(siteObj,item))
+									  })
+								  })
+							  }
+							  siteslist.push(siteObj)
+							  //~ console.log(JSON.stringify(siteObj.series,null,2))
 							  
 						  })
 						  //~ console.log(siteslist)  
@@ -307,6 +320,8 @@ internal.client = class {
 			}
 		})
 	}
+	
+	
 	
 	getSiteInfo(SiteCode) {
 		return new Promise( (resolve, reject) => {
@@ -331,62 +346,7 @@ internal.client = class {
 							if(site.seriesCatalog.length > 0) {
 								if(site.seriesCatalog[0].series.length > 0) {
 									site.seriesCatalog[0].series.forEach(function(item) {
-										var unitObj = new internal.Unit(
-											item.variable.unit.unitName,
-											item.variable.unit.unitType,
-											item.variable.unit.unitAbbreviation,
-											item.variable.unit.unitCode
-										)
-										var timeUnitObj = new internal.Unit(
-											(item.variable.timeScale.unit) ? item.variable.timeScale.unit.unitName : null,
-											(item.variable.timeScale.unit) ? item.variable.timeScale.unit.unitType : null,
-											(item.variable.timeScale.unit) ? item.variable.timeScale.unit.unitAbbreviation : null,
-											(item.variable.timeScale.unit) ? item.variable.timeScale.unit.unitCode : null
-										)
-										var timeScaleObj = new internal.TimeScale(
-											item.variable.timeScale.attributes.isRegular,
-											timeUnitObj,
-											(item.variable.timeScale.timeSupport) ? item.variable.timeScale.timeSupport : null
-										)
-										
-										var variableObj = new internal.Variable(  // variableCode, variableName, valueType, dataType, generalCategory, sampleMedium, unit, noDataValue, timeScale, speciation
-											(item.variable.variableCode[0].$value) ? item.variable.variableCode[0].$value : item.variable.variableCode[0].attributes.vocabulary + ":" + item.variable.variableCode[0].attributes.variableID, 
-											item.variable.variableName,
-											item.variable.valueType,
-											item.variable.dataType,
-											item.variable.generalCategory,
-											item.variable.sampleMedium,
-											unitObj,
-											item.variable.noDataValue,
-											timeScaleObj,
-											item.variable.speciation
-										)
-										var methodObj = new internal.Method(
-											(item.method) ? item.method.attributes.methodID : null,
-											(item.method) ? item.method.methodCode: null,
-											(item.method) ? item.method.methodDescription : null,
-											(item.method) ? item.method.methodLink : null
-										)
-										var sourceObj = new internal.Source(
-											item.source.attributes.sourceID,
-											item.source.organization,
-											item.source.citation
-										)
-										var qualityControlLevelObj = new internal.QualityControlLevel(
-											(item.qualityControlLevel) ? item.qualityControlLevel.attributes.qualityControlLevelID : null,
-											(item.qualityControlLevel) ? item.qualityControlLevel.qualityControlLevelCode : null,
-											(item.qualityControlLevel) ? item.qualityControlLevel.definition : null
-										)
-										var seriesObj = new internal.Series(  //  site, variable, valueCount, beginDateTimeUTC, endDateTimeUTC, method, source, qualityControlLevel
-											siteObj,
-											variableObj,
-											item.valueCount,
-											item.variableTimeInterval.beginDateTimeUTC,
-											item.variableTimeInterval.endDateTimeUTC,
-											methodObj,
-											sourceObj,
-											qualityControlLevelObj
-										)   
+										var seriesObj =  internal.makeSeries(siteObj,item)
 										serieslist.push(seriesObj)
 									})
 								} 
@@ -400,6 +360,7 @@ internal.client = class {
 			})
 		})
 	}
+	
 	getValues(siteCode,variableCode,startDate,endDate) {
 		return new Promise( (resolve, reject) => {
 			if(!siteCode || !variableCode || !startDate || !endDate) {
@@ -519,5 +480,66 @@ internal.client = class {
 	}
 }
 
+internal.makeSeries = function(siteObj,item) {  // Creates internal.Series class object factory from array element of getSiteInfoObject->Site->SeriesCatalog->series //
+		
+	var unitObj = new internal.Unit(
+		item.variable.unit.unitName,
+		item.variable.unit.unitType,
+		item.variable.unit.unitAbbreviation,
+		item.variable.unit.unitCode
+	)
+	var timeUnitObj = new internal.Unit(
+		(item.variable.timeScale.unit) ? item.variable.timeScale.unit.unitName : null,
+		(item.variable.timeScale.unit) ? item.variable.timeScale.unit.unitType : null,
+		(item.variable.timeScale.unit) ? item.variable.timeScale.unit.unitAbbreviation : null,
+		(item.variable.timeScale.unit) ? item.variable.timeScale.unit.unitCode : null
+	)
+	var timeScaleObj = new internal.TimeScale(
+		item.variable.timeScale.attributes.isRegular,
+		timeUnitObj,
+		(item.variable.timeScale.timeSupport) ? item.variable.timeScale.timeSupport : null
+	)
+	
+	var variableObj = new internal.Variable(  // variableCode, variableName, valueType, dataType, generalCategory, sampleMedium, unit, noDataValue, timeScale, speciation
+		(item.variable.variableCode[0].$value) ? item.variable.variableCode[0].$value : item.variable.variableCode[0].attributes.vocabulary + ":" + item.variable.variableCode[0].attributes.variableID, 
+		item.variable.variableName,
+		item.variable.valueType,
+		item.variable.dataType,
+		item.variable.generalCategory,
+		item.variable.sampleMedium,
+		unitObj,
+		item.variable.noDataValue,
+		timeScaleObj,
+		item.variable.speciation
+	)
+	var methodObj = new internal.Method(
+		(item.method) ? item.method.attributes.methodID : null,
+		(item.method) ? item.method.methodCode: null,
+		(item.method) ? item.method.methodDescription : null,
+		(item.method) ? item.method.methodLink : null
+	)
+	var sourceObj = new internal.Source(
+		item.source.attributes.sourceID,
+		item.source.organization,
+		item.source.citation
+	)
+	var qualityControlLevelObj = new internal.QualityControlLevel(
+		(item.qualityControlLevel) ? item.qualityControlLevel.attributes.qualityControlLevelID : null,
+		(item.qualityControlLevel) ? item.qualityControlLevel.qualityControlLevelCode : null,
+		(item.qualityControlLevel) ? item.qualityControlLevel.definition : null
+	)
+	var newSiteObj = new internal.Site(siteObj.siteName,siteObj.network, siteObj.siteCode, siteObj.longitude, siteObj.latitude)   // to avoid circular reference
+	var seriesObj = new internal.Series(  //  site, variable, valueCount, beginDateTimeUTC, endDateTimeUTC, method, source, qualityControlLevel
+		newSiteObj,
+		variableObj,
+		item.valueCount,
+		item.variableTimeInterval.beginDateTimeUTC,
+		item.variableTimeInterval.endDateTimeUTC,
+		methodObj,
+		sourceObj,
+		qualityControlLevelObj
+	) 
+	return seriesObj  
+}
 
 module.exports = internal
