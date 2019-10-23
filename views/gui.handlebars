@@ -690,7 +690,6 @@
 				//~ datatable.clear();
 				var seriesdata = data.values.map(it=> {
 					var date = Date.parse(it.dateTime)
-					console.log(date)
 					return [date, parseFloat(it.value)]
 				})
 				var seriesdataformat = data.values.map(it => {
