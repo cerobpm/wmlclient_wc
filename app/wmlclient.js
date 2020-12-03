@@ -361,7 +361,7 @@ internal.client = class {
 		})
 	}
 	
-	getValues(siteCode,variableCode,startDate,endDate) {
+	getValues(siteCode,variableCode,startDate,endDate,hideNoDataValues=true) {
 		return new Promise( (resolve, reject) => {
 			if(!siteCode || !variableCode || !startDate || !endDate) {
 				reject("Faltan parametros")
@@ -372,7 +372,7 @@ internal.client = class {
 					reject(err)
 					return
 				}
-				client.GetValuesObject({location: siteCode, variable: variableCode, startDate: startDate, endDate: endDate}, function(err, result, rawResponse) {
+				client.GetValuesObject({location: siteCode, variable: variableCode, startDate: startDate, endDate: endDate,hideNoDataValues:hideNoDataValues}, function(err, result, rawResponse) {
 					if(err) {
 						reject(err)
 						return

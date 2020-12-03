@@ -28,7 +28,14 @@ app.get('/', (req,res)=> {
 app.post('/wml/getSites',getSites)
 app.post('/wml/getSiteInfo',getSiteInfo)
 app.post('/wml/getValues',getValues)
-app.get('/wml/',renderPage)
+app.get('/wml',(req, res) => {
+	if (!req.url.endsWith('/')) {
+      res.redirect(301, req.url + '/')
+    } else {
+		renderPage(req,res)
+	}
+})
+
 
 function getSites(req,res) {
 	console.log(req.body)
@@ -180,7 +187,7 @@ function getValues(req,res) {
 		res.status(400).send({message:"Falta site o variable o startdate o enddate",error:"Falta site o variable o startdate o enddate"})
 		return
 	}
-	wml.getValues(req.body.site,req.body.variable,req.body.startdate,req.body.enddate)
+	wml.getValues(req.body.site,req.body.variable,req.body.startdate,req.body.enddate,req.body.hideNoDataValues)
 	.then(values=> {
 		res.send(values)
 		return
