@@ -18,10 +18,23 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 })); 
 const port = config.port
 
-let soap_client_options = { 'request' : request.defaults(config.request_defaults)}
+let soap_client_options = { 'request' : request.defaults(config.request_defaults), wsdl_headers: config.wsdl_headers}
 const wmlclient = require('./wmlclient')
 const wml = new wmlclient.client(config.wml_endpoint, soap_client_options)
 
+const { Pool, Client } = require('pg')
+const pool = new Pool(config.database)
+
+const auth = require('./authentication.js')(app,config,pool)
+const passport = auth.passport
+
+app.get('/exit',auth.isAdmin,(req,res)=>{  // terminate Nodejs process
+	res.status(200).send("Terminating Nodejs process")
+	console.log("Exit order recieved from client")
+	setTimeout(()=>{
+		process.exit()
+	},500)
+})
 app.get('/', (req,res)=> {
 	res.send("wmlclient running")
 })
@@ -187,7 +200,7 @@ function getValues(req,res) {
 		res.status(400).send({message:"Falta site o variable o startdate o enddate",error:"Falta site o variable o startdate o enddate"})
 		return
 	}
-	wml.getValues(req.body.site,req.body.variable,req.body.startdate,req.body.enddate,req.body.hideNoDataValues)
+	wml.getValues(req.body.site,req.body.variable,req.body.startdate,req.body.enddate)
 	.then(values=> {
 		res.send(values)
 		return

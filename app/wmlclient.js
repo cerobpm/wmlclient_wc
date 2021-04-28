@@ -274,6 +274,7 @@ internal.client = class {
 	}
 	getSites(north,south,east,west,includeSeries=false) {
 		return new Promise ( (resolve, reject) => {
+			const wsdl_headers = this.soap_client_options.wsdl_headers
 			if(north && south && east && west) {
 				soap.createClient(this.endpoint, this.soap_client_options, function(err, client) {
 					if(err) {
@@ -281,6 +282,11 @@ internal.client = class {
 						//~ console.error(err)
 						return
 					}
+					Object.keys(wsdl_headers).forEach(key=>{
+						client.addHttpHeader(key, wsdl_headers[key])
+						//~ 'Origin','https://alerta.ina.gob.ar')
+					//~ client.addHttpHeader('Referer','https://alerta.ina.gob.ar/wmlclient/wml/')
+					})
 					client.GetSitesByBoxObject({north: north, south: south, east: east, west: west, IncludeSeries: includeSeries}, function(err, result, rawResponse) {
 					  if(err) {
 						  reject({message:"waterML server error",error:err})
@@ -292,8 +298,12 @@ internal.client = class {
 					  var siteslist = []
 					  if(result.sitesResponse.hasOwnProperty("site")) {
 						  result.sitesResponse.site.forEach(function(site) {
+							  if(Array.isArray(site.siteInfo.siteCode)) {
+									console.log("siteCode is array!")
+									site.siteInfo.siteCode = site.siteInfo.siteCode[0]
+							  }							  
 							  //~ console.log(JSON.stringify(site.seriesCatalog,null,2))
-							  const siteObj = new internal.Site(site.siteInfo.siteName,site.siteInfo.siteCode[0].attributes.network,site.siteInfo.siteCode[0]["$value"],site.siteInfo.geoLocation.geogLocation.longitude,site.siteInfo.geoLocation.geogLocation.latitude)
+							  const siteObj = new internal.Site(site.siteInfo.siteName,site.siteInfo.siteCode.attributes.network,site.siteInfo.siteCode["$value"],site.siteInfo.geoLocation.geogLocation.longitude,site.siteInfo.geoLocation.geogLocation.latitude)
 							  if(includeSeries) { 
 								  site.seriesCatalog.forEach(catalog=>{
 									  catalog.series.forEach(item=>{
@@ -329,11 +339,15 @@ internal.client = class {
 				reject("SiteCode missing")
 				return
 			}
+			const wsdl_headers = this.soap_client_options.wsdl_headers
 			soap.createClient(this.endpoint, this.soap_client_options, function(err, client) {
 				if(err) {
 					reject(err)
 					return
 				}
+				Object.keys(wsdl_headers).forEach(key=>{
+					client.addHttpHeader(key, wsdl_headers[key])
+				})
 				client.GetSiteInfoObject({site: SiteCode}, function(err, result, rawResponse) {
 					if(err) {
 						reject(err)
@@ -367,11 +381,15 @@ internal.client = class {
 				reject("Faltan parametros")
 				return
 			}
+			const wsdl_headers = this.soap_client_options.wsdl_headers
 			soap.createClient(this.endpoint, this.soap_client_options, function(err, client) {
 				if(err) {
 					reject(err)
 					return
 				}
+				Object.keys(wsdl_headers).forEach(key=>{
+					client.addHttpHeader(key, wsdl_headers[key])
+				})
 				client.GetValuesObject({location: siteCode, variable: variableCode, startDate: startDate, endDate: endDate,hideNoDataValues:hideNoDataValues}, function(err, result, rawResponse) {
 					if(err) {
 						reject(err)
@@ -384,12 +402,21 @@ internal.client = class {
 							console.log("timeSeries es array!")
 							result.timeSeriesResponse.timeSeries = result.timeSeriesResponse.timeSeries[0]
 						}
-					  //~ console.log(result.timeSeriesResponse.timeSeries.variable)
+					    console.log({timeSeries: result.timeSeriesResponse.timeSeries})
+						if(!result.timeSeriesResponse.timeSeries.sourceInfo.siteCode) {
+							reject("missing siteCode")
+							return
+						}
+						if(Array.isArray(result.timeSeriesResponse.timeSeries.sourceInfo.siteCode)) {
+							console.log("siteCode is array!")
+							result.timeSeriesResponse.timeSeries.sourceInfo.siteCode = result.timeSeriesResponse.timeSeries.sourceInfo.siteCode[0]
+						}
+					    console.log({siteCode: result.timeSeriesResponse.timeSeries.sourceInfo.siteCode})
 						Series = new internal.Series (  // site, variable, valueCount, beginDateTimeUTC, endDateTimeUTC, method, source, qualityControlLevel
 							new internal.Site ( //  siteName,network, siteCode, longitude, latitude
 								result.timeSeriesResponse.timeSeries.sourceInfo.siteName,
-								(result.timeSeriesResponse.timeSeries.sourceInfo.siteCode[0].attributes) ? result.timeSeriesResponse.timeSeries.sourceInfo.siteCode[0].attributes.network : null,
-								result.timeSeriesResponse.timeSeries.sourceInfo.siteCode[0].$value,
+								(result.timeSeriesResponse.timeSeries.sourceInfo.siteCode.attributes) ? result.timeSeriesResponse.timeSeries.sourceInfo.siteCode.attributes.network : null,
+								result.timeSeriesResponse.timeSeries.sourceInfo.siteCode.$value,
 								(result.timeSeriesResponse.timeSeries.sourceInfo.geoLocation) ? result.timeSeriesResponse.timeSeries.sourceInfo.geoLocation.geogLocation.longitude : null,
 								(result.timeSeriesResponse.timeSeries.sourceInfo.geoLocation) ? result.timeSeriesResponse.timeSeries.sourceInfo.geoLocation.geogLocation.latitude: null
 							),
